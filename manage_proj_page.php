@@ -123,6 +123,12 @@ print_manage_menu( 'manage_proj_page.php' );
 					print_manage_project_sort_link( 'manage_proj_page.php', lang_get( 'description' ), 'description', $t_direction, $f_sort );
 					print_sort_icon( $t_direction, $f_sort, 'description' ); ?>
 				</th>
+				<?php if( plugin_is_installed( 'BMS_ProjectInfos' ) ) { ?>
+					<th><?php 
+					print_manage_project_sort_link( 'manage_proj_page.php', lang_get( 'plugin_BMS_ProjectInfos_actualVersion' ), 'actual_version', $t_direction, $f_sort );
+					print_sort_icon( $t_direction, $f_sort, 'actual_version' ); ?>
+					</th>
+				<?php }?>
 			</tr>
 		</thead>
 
@@ -133,6 +139,9 @@ print_manage_menu( 'manage_proj_page.php' );
 		$t_full_projects = array();
 		foreach ( $t_projects as $t_project_id ) {
 			$t_full_projects[] = project_get_row( $t_project_id );
+			if( plugin_is_installed( 'BMS_ProjectInfos' ) ) {
+				$t_full_projects[count( $t_full_projects ) - 1]['actual_version'] = bms_projectInfos_get_actual_release( $t_project_id )['version'];
+			}
 		}
 		$t_projects = multi_sort( $t_full_projects, $f_sort, $t_direction );
 		$t_stack = array( $t_projects );
@@ -158,6 +167,9 @@ print_manage_menu( 'manage_proj_page.php' );
 				<td class="center"><?php echo trans_bool( $t_project['enabled'] ) ?></td>
 				<td><?php echo get_enum_element( 'project_view_state', $t_project['view_state'] ) ?></td>
 				<td><?php echo string_display_links( $t_project['description'] ) ?></td>
+				<?php if( plugin_is_installed( 'BMS_ProjectInfos' ) ) { ?>
+					<td><?php echo string_display( $t_project['actual_version'])?></td>
+				<?php }?>
 			</tr><?php
 			}
 			$t_subprojects = project_hierarchy_get_subprojects( $t_project_id, true );
@@ -170,6 +182,9 @@ print_manage_menu( 'manage_proj_page.php' );
 				$t_full_projects = array();
 				foreach ( $t_subprojects as $t_project_id ) {
 					$t_full_projects[] = project_get_row( $t_project_id );
+					if( plugin_is_installed( 'BMS_ProjectInfos' ) ) {
+						$t_full_projects[count( $t_full_projects ) - 1]['actual_version'] = bms_projectInfos_get_actual_release( $t_project_id )['version'];
+					}
 				}
 				$t_subprojects = multi_sort( $t_full_projects, $f_sort, $t_direction );
 				array_unshift( $t_stack, $t_subprojects );
