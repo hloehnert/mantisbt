@@ -270,7 +270,7 @@ foreach( $t_project_ids as $t_project_id ) {
 			LEFT JOIN {bug} dbt ON dbt.id=rt.source_bug_id
 			WHERE sbt.project_id=' . db_param() . '
 			  AND sbt.fixed_in_version=' . db_param() . '
-			ORDER BY sbt.status ASC, sbt.last_updated DESC';
+			ORDER BY sbt.status ASC, sbt.summary ASC, sbt.last_updated DESC';
 
 		$t_description = version_get_field( $t_version_id, 'description' );
 
