@@ -52,6 +52,7 @@ require_api( 'bug_api.php' );
 require_api( 'category_api.php' );
 require_api( 'config_api.php' );
 require_api( 'constant_inc.php' );
+require_api( 'custom_field_api.php' );
 require_api( 'database_api.php' );
 require_api( 'error_api.php' );
 require_api( 'filter_api.php' );
@@ -243,6 +244,8 @@ $t_project_index = 0;
 version_cache_array_rows( $t_project_ids );
 category_cache_array_rows_by_project( $t_project_ids );
 
+$t_cost_field_id = custom_field_get_id_from_name( config_get('customField_costs_estimated') );
+
 foreach( $t_project_ids as $t_project_id ) {
 	$t_project_name = project_get_field( $t_project_id, 'name' );
 	$t_resolved = config_get( 'bug_resolved_status_threshold' );
@@ -288,6 +291,9 @@ foreach( $t_project_ids as $t_project_id ) {
 		$t_issue_ids = array();
 		$t_issue_parents = array();
 		$t_issue_handlers = array();
+		
+		$t_cost_planned = 0;
+		$t_cost_resolved = 0;
 
 		while( $t_row = db_fetch_array( $t_result ) ) {
 			bug_cache_database_result( $t_row );
@@ -322,7 +328,15 @@ foreach( $t_project_ids as $t_project_id ) {
 				$t_issue_ids[] = $t_issue_id;
 				$t_issue_parents[] = null;
 			}
-
+			
+			if(custom_field_is_linked( $t_cost_field_id, $t_project_id )) {
+				$t_cost = (integer)custom_field_get_value( $t_cost_field_id, $t_issue_id );
+				$t_cost_planned += $t_cost;
+				if( bug_is_resolved( $t_issue_id ) ) {
+					$t_cost_resolved+=$t_cost;
+				}
+			}
+			
 			$t_issue_handlers[] = $t_row['handler_id'];
 		}
 
@@ -347,12 +361,21 @@ foreach( $t_project_ids as $t_project_id ) {
 				echo '<div class="alert alert-warning">', string_display( "$t_description" ), '</div>';
 			}
 
-			echo '<div class="space-4"></div>';
 			echo '<div class="col-md-7 col-xs-12 no-padding">';
-			echo '<div class="progress progress-large progress-striped" data-percent="' . $t_progress . '%" >';
+			echo '<div class="progress progress-large progress-striped hr-2" data-percent="' . sprintf("%s/%s: %s%%", $t_issues_resolved, $t_issues_planned, $t_progress) . '" >';
 			echo '<div style="width:' . $t_progress . '%;" class="progress-bar progress-bar-success"></div>';
 			echo '</div></div>';
+			
+			if($t_cost_planned > 0){
+				$t_cost_rel = (integer) ( $t_cost_resolved * 100 / $t_cost_planned );
+				echo '<div class="col-md-7 col-xs-12 no-padding">';
+				echo '<div class="progress progress-large progress-striped hr-2" data-percent="' . sprintf("%s/%s [h]: %s%%", $t_cost_resolved, $t_cost_planned, $t_cost_rel) . '" >';
+				echo '<div style="width:' . $t_cost_rel . '%;" class="progress-bar progress-bar-purple"></div>';
+				echo '</div></div>';
+			}
+			
 			echo '<div class="clearfix"></div>';
+			echo '<div class="space-4"></div>';
 		}
 
 		$t_issue_set_ids = array();
