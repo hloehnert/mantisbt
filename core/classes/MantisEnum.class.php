@@ -75,9 +75,12 @@ class MantisEnum {
 	 * @return string the label or the decorated value to represent not found.
 	 */
 	public static function getLocalizedLabel( $p_enum_string, $p_localized_enum_string, $p_value ) {
-		if( !MantisEnum::hasValue( $p_enum_string, $p_value ) ) {
-			return MantisEnum::getLabelForUnknownValue( $p_value );
-		}
+		//HL 31.1.2020 see MANTIS #0109732: in case value is in localized string -> return this value
+		//so formaer values are still displayed, but can't be selected anymore
+		
+		//if( !MantisEnum::hasValue( $p_enum_string, $p_value ) ) {
+		//	return MantisEnum::getLabelForUnknownValue( $p_value );
+		//}
 
 		$t_assoc_array = MantisEnum::getAssocArrayIndexedByValues( $p_localized_enum_string );
 
